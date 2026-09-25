@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 export type AuthUser = {
@@ -20,7 +20,7 @@ export function createAccessToken(user: AuthUser) {
       roles: user.roles,
     },
     secret,
-    { expiresIn }
+    { expiresIn: expiresIn as SignOptions["expiresIn"] }
   );
 }
 
