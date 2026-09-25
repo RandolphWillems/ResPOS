@@ -22,7 +22,7 @@ ResPOS/
 
 - Node.js 20+
 - pnpm 9+ (`npm install -g pnpm`)
-- PostgreSQL 15+ (lokaal of via Docker)
+- Microsoft SQL Server Express 2019/2022 (lokaal op Windows)
 
 ## Snel starten
 

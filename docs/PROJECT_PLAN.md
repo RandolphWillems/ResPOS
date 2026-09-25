@@ -26,7 +26,7 @@ Alle drie praten met dezelfde database en realtime-laag, zodat een bestelling di
 | Frontend (klant-menu) | Zelfde React-app, apart "public" route, of losse lichte app | Moet snel laden op telefoons |
 | Styling | Tailwind CSS | Snel schermen bouwen, consistent |
 | Backend | Node.js + Express of NestJS (TypeScript) | Eén taal front-to-back, makkelijk te onderhouden |
-| Database | PostgreSQL | Relationeel, goed voor voorraad/orders/rollen, transacties voor dagafsluiting |
+| Database | Microsoft SQL Server Express | Sterk voor lokale Windows-setup, relationele data, transacties voor voorraad en dagafsluiting |
 | Realtime (bestelling → keuken/kassa) | WebSockets (Socket.IO) of Supabase Realtime | Nodig voor live keukenbonnen en tafelstatus |
 | Authenticatie | JWT + refresh tokens, eigen users-tabel | Rollen/rechten zelf beheren |
 | QR-codes | `qrcode` npm-package, gegenereerd per tafel | Eén QR-code per tafel-ID, geen externe dienst nodig |
@@ -65,7 +65,7 @@ Je kan dit 1-op-1 gebruiken, of onderdelen vervangen (bv. Supabase in plaats van
                     └───────────┬────────────┘
                                 │
                     ┌───────────────────────┐
-                    │     PostgreSQL DB      │
+                    │  SQL Server Express DB  │
                     └───────────────────────┘
 ```
 
