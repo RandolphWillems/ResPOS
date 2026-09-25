@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../prisma.js";
+import { requireAuth } from "../auth/middleware.js";
 
 export const reportsRouter = Router();
+
+reportsRouter.use(requireAuth);
 
 const closeDaySchema = z.object({
   closedById: z.string(),

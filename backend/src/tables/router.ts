@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../prisma.js";
+import { requireAuth } from "../auth/middleware.js";
 
 export const tablesRouter = Router();
+
+tablesRouter.use(requireAuth);
 
 // GET /api/tables — overzicht van alle tafels en de bar, met status
 tablesRouter.get("/", async (_req, res) => {

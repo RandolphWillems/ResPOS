@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../prisma.js";
+import { requireAuth } from "../auth/middleware.js";
 
 export const inventoryRouter = Router();
+
+inventoryRouter.use(requireAuth);
 
 // GET /api/inventory — volledige voorraadlijst
 inventoryRouter.get("/", async (_req, res) => {

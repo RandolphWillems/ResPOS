@@ -9,6 +9,24 @@ async function main() {
     await prisma.role.upsert({ where: { name }, update: {}, create: { name } });
   }
 
+  const adminRole = await prisma.role.findUnique({ where: { name: "Eigenaar" } });
+  if (adminRole) {
+    const adminEmail = "admin@respos.local";
+    const passwordHash = await import("bcryptjs").then(({ hash }) => hash("admin123", 10));
+
+    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          name: "Admin",
+          email: adminEmail,
+          passwordHash,
+          roles: { create: [{ roleId: adminRole.id }] },
+        },
+      });
+    }
+  }
+
   // Tafels + bar
   for (let i = 1; i <= 6; i++) {
     await prisma.restaurantTable.upsert({
