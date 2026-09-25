@@ -1,0 +1,21 @@
+{
+  "name": "respos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Kassa- en beheersysteem voor restaurants",
+  "scripts": {
+    "dev": "pnpm --parallel --filter=./apps/* --filter=./backend run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "format": "prettier --write .",
+    "prisma:studio": "pnpm --filter backend prisma:studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.10.0"
+}

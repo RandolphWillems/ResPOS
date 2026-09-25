@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Gebruikers, rollen, rechten ----------
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  active       Boolean    @default(true)
+  roles        UserRole[]
+  dayClosings  DayClosing[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique // Eigenaar, Manager, Ober, Bar, Keuken
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id    String           @id @default(cuid())
+  name  String           @unique // bv. "kassa.gebruiken", "voorraad.beheren"
+  roles RolePermission[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+// ---------- Tafels & bar ----------
+
+enum TableZone {
+  TAFEL
+  BAR
+}
+
+enum TableStatus {
+  VRIJ
+  BESTELD
+  REKENING
+}
+
+model RestaurantTable {
+  id       String      @id @default(cuid())
+  label    String // "Tafel 1", "Bar 2"
+  zone     TableZone   @default(TAFEL)
+  status   TableStatus @default(VRIJ)
+  qrToken  String      @unique @default(cuid())
+  orders   Order[]
+  createdAt DateTime   @default(now())
+}
+
+// ---------- Menu & voorraad ----------
+
+model MenuItem {
+  id             String        @id @default(cuid())
+  name           String
+  category       String
+  price          Decimal       @db.Decimal(10, 2)
+  available      Boolean       @default(true)
+  inventoryItemId String?
+  inventoryItem  InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  orderLines     OrderLine[]
+}
+
+enum InventoryCategory {
+  KEUKEN
+  DRANK
+  WIJN
+  OVERIG
+}
+
+model InventoryItem {
+  id             String             @id @default(cuid())
+  name           String
+  category       InventoryCategory  @default(OVERIG)
+  unit           String // fles, kg, stuk, liter...
+  currentStock   Decimal            @db.Decimal(10, 2)
+  minStock       Decimal            @db.Decimal(10, 2)
+  costPrice      Decimal            @db.Decimal(10, 2)
+  // Optionele wijnvelden — laat leeg voor niet-wijnitems
+  grapeVariety   String?
+  vintage        Int?
+  winery         String?
+  menuItems      MenuItem[]
+  supplierLines  SupplierOrderLine[]
+}
+
+// ---------- Leveranciers ----------
+
+model Supplier {
+  id      String          @id @default(cuid())
+  name    String
+  contact String?
+  orders  SupplierOrder[]
+}
+
+enum SupplierOrderStatus {
+  CONCEPT
+  VERZONDEN
+  ONTVANGEN
+}
+
+model SupplierOrder {
+  id         String              @id @default(cuid())
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id])
+  status     SupplierOrderStatus @default(CONCEPT)
+  lines      SupplierOrderLine[]
+  createdAt  DateTime            @default(now())
+}
+
+model SupplierOrderLine {
+  id              String        @id @default(cuid())
+  orderId         String
+  order           SupplierOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  quantity        Decimal       @db.Decimal(10, 2)
+  price           Decimal       @db.Decimal(10, 2)
+}
+
+// ---------- Bestellingen ----------
+
+enum OrderStatus {
+  OPEN
+  BESTELD
+  KLAAR
+  OP_REKENING
+  AFGEREKEND
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  tableId   String
+  table     RestaurantTable @relation(fields: [tableId], references: [id])
+  status    OrderStatus @default(OPEN)
+  total     Decimal     @db.Decimal(10, 2) @default(0)
+  lines     OrderLine[]
+  printJobs PrintJob[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OrderLine {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int      @default(1)
+  price      Decimal  @db.Decimal(10, 2)
+  note       String?
+}
+
+// ---------- Dagafsluiting ----------
+
+model DayClosing {
+  id           String   @id @default(cuid())
+  date         DateTime @default(now())
+  totalRevenue Decimal  @db.Decimal(10, 2)
+  totalCost    Decimal  @db.Decimal(10, 2)
+  profit       Decimal  @db.Decimal(10, 2)
+  closedById   String
+  closedBy     User     @relation(fields: [closedById], references: [id])
+}
+
+// ---------- Printen ----------
+
+enum PrintJobStatus {
+  WACHTEND
+  GEPRINT
+  MISLUKT
+}
+
+model PrintJob {
+  id        String         @id @default(cuid())
+  orderId   String
+  order     Order          @relation(fields: [orderId], references: [id])
+  printer   String         @default("keuken")
+  status    PrintJobStatus @default(WACHTEND)
+  createdAt DateTime       @default(now())
+}
